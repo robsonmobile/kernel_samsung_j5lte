@@ -201,7 +201,7 @@ struct abov_tk_info {
 	bool led_twinkle_check;
 #endif
 	bool dual_mode;
-
+	int force_disable;
 };
 
 
@@ -1180,6 +1180,29 @@ static ssize_t abov_set_dual_detection_mode(struct device *dev,
 	return count;
 }
 
+static ssize_t touckey_force_disable_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	struct abov_tk_info *info = dev_get_drvdata(dev);
+
+	return snprintf(buf, BUF_SIZE, "%u\n", info->force_disable);
+}
+
+static ssize_t touckey_force_disable_store(struct device *dev,
+				struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int force_disable;
+	struct abov_tk_info *info = dev_get_drvdata(dev);
+
+	if(sscanf(buf, "%u", &force_disable) != 1)
+		return -EINVAL;
+
+	if(force_disable > 1)
+		return -EINVAL;
+
+	info->force_disable = force_disable;
+
+	return count;
+}
 
 static DEVICE_ATTR(touchkey_threshold, S_IRUGO, touchkey_threshold_show, NULL);
 static DEVICE_ATTR(brightness, S_IRUGO | S_IWUSR | S_IWGRP, NULL,
@@ -1201,6 +1224,7 @@ static DEVICE_ATTR(glove_mode, S_IRUGO | S_IWUSR | S_IWGRP,
 
 static DEVICE_ATTR(detection_mode, S_IRUGO | S_IWUSR | S_IWGRP,
 			NULL, abov_set_dual_detection_mode);
+static DEVICE_ATTR(force_disable, 0664, touckey_force_disable_show, touckey_force_disable_store);
 
 static struct attribute *sec_touchkey_attributes[] = {
 	&dev_attr_touchkey_threshold.attr,
@@ -1217,6 +1241,7 @@ static struct attribute *sec_touchkey_attributes[] = {
 	&dev_attr_glove_mode.attr,
 #endif
 	&dev_attr_detection_mode.attr,
+	&dev_attr_force_disable.attr,
 	NULL,
 };
 
@@ -1519,6 +1544,7 @@ static int abov_tk_probe(struct i2c_client *client,
 	if (info->pdata->power)
 		info->pdata->power(info->pdata, true);
 
+        info->enabled = true;
 	info->irq = -1;
 	mutex_init(&info->lock);
 
