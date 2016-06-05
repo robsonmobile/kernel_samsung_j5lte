@@ -8,8 +8,3 @@ config TOUCHSCREEN_IST30XXC
 	help
 	  Say Y here if you have the Imagis IST30XXC I2C touchscreen
 	  connected to your system.
-
-config TOUCHSCREEN_IST30XXC_WAKE_GESTURE
-        bool "Wake gestures interface for Imagis IST30XXC I2C touchscreen"
-        depends on TOUCHSCREEN_MMS300_A
-        default y
